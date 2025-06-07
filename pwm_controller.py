@@ -24,23 +24,19 @@ class PWMController:
     def steer_left(self):
         print("[PWM] Steer LEFT")
         self.send_pwm(1, 1100)  # Rear left motor reverse
-        self.send_pwm(2, 1900)  # Rear right motor forward
         self.send_pwm(3, 1500)  # Front motor neutral
 
     def steer_right(self):
         print("[PWM] Steer RIGHT")
         self.send_pwm(1, 1900)  # Rear left motor forward
-        self.send_pwm(2, 1100)  # Rear right motor reverse
         self.send_pwm(3, 1500)  # Front motor neutral
 
     def go_forward(self):
         print("[PWM] Forward")
-        self.send_pwm(1, 1600)
-        self.send_pwm(2, 1600)
-        self.send_pwm(3, 1600)
+        self.send_pwm(1, 1500)
+        self.send_pwm(3, 1900)
 
     def stop_all(self):
         print("[PWM] STOP")
         self.send_pwm(1, 1500)
-        self.send_pwm(2, 1500)
         self.send_pwm(3, 1500)
