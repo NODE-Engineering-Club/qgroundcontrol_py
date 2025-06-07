@@ -8,13 +8,13 @@ import time
 
 def main():
     logger = MissionLogger()
-    qgc = QGCMissionController('/dev/ttyACM0')   # Change port if needed
-    pwm = PWMController('/dev/ttyACM0')          # Same port for PWM commands
+    qgc = QGCMissionController('/dev/ttyACM0')   # Change port 
+    pwm = PWMController('/dev/ttyACM0')          # Pixhawk port same as pwm commannds
     
-    # 🎥 CAMERA SETUP
-    # For USB webcam (most common on Pi): use index 0 or 1
+    # CAMERA SETUP
+    # For USB webcam (most common on Pi): 
     # For Pi Camera Module: make sure it's enabled and use OpenCV with libcamera/GStreamer
-    video = cv.VideoCapture(0)
+    video = cv.VideoCapture(0) #use index 0 or 1
 
     vision = visionNav(video=video)
     logger.log("✅ Main system started")
