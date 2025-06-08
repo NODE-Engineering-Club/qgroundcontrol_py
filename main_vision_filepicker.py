@@ -10,7 +10,7 @@ from mission_logger import MissionLogger
 
 # === CONFIG ===
 CAMERA_INDEX = 0
-SERIAL_PORT = "/dev/ttyACM0"
+MAVLINK_UDP = "udp:127.0.0.1:14551"
 PLAN_OUTPUT = "mission.plan"
 LOG_FILE_PATH = "mission_log.txt"
 
@@ -19,7 +19,7 @@ logger = MissionLogger()
 def ask_for_csv_path():
     root = tk.Tk()
     root.withdraw()
-    print("🗂️ Select GPS CSV file or press Cancel to skip.")
+    print(" Select GPS CSV file or press Cancel to skip.")
     file_path = filedialog.askopenfilename(
         title="Select GPS CSV File (Optional)",
         filetypes=[("CSV Files", "*.csv")]
@@ -60,7 +60,7 @@ def handle_decision(decision, pwm: PWMController):
         pwm.stop_all()
 
 def main():
-    print("🚤 NJORD Autonomous Boat Control - Minimal Version")
+    print(" NJORD Autonomous Boat Control - UDP Mode")
     csv_path = ask_for_csv_path()
     if csv_path:
         convert_csv_to_plan(csv_path, PLAN_OUTPUT)
@@ -74,7 +74,7 @@ def main():
         exit(1)
 
     nav = visionNav(video=cap)
-    pwm = PWMController(SERIAL_PORT)
+    pwm = PWMController(MAVLINK_UDP)
 
     try:
         while True:
