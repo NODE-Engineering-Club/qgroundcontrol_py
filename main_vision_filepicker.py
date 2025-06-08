@@ -3,9 +3,7 @@ import time
 import cv2
 import tkinter as tk
 from tkinter import filedialog
-
 from vision import visionNav
-from qgc_controller import pause_mission, resume_mission
 from pwm_controller import PWMController
 from qgc_plan_converter import convert_csv_to_plan
 from mission_logger import MissionLogger
@@ -20,24 +18,17 @@ logger = MissionLogger()
 
 def ask_for_csv_path():
     root = tk.Tk()
-    root.withdraw()  # Hide root window
-
+    root.withdraw()
+    print("🗂️ Select GPS CSV file or press Cancel to skip.")
     file_path = filedialog.askopenfilename(
-        title="Select GPS CSV File",
+        title="Select GPS CSV File (Optional)",
         filetypes=[("CSV Files", "*.csv")]
     )
-
     if not file_path:
-        print("❌ No file selected. Exiting.")
-        exit(1)
-
+        print("⚠️ CSV skipped. No mission.plan will be created.")
+        return None
     print(f"✅ Selected file: {file_path}")
     return file_path
-
-def launch_qgc():
-    if input("Launch QGroundControl? (y/n): ").lower().startswith("y"):
-        os.system("./QGroundControl.AppImage &")
-        logger.log("Launched QGroundControl")
 
 def interpret_decision(nav: visionNav):
     if nav.mask_r is None or nav.mask_g is None or nav.middle_x is None:
@@ -57,35 +48,29 @@ def handle_decision(decision, pwm: PWMController):
     if decision == "KEEP_ROUTE":
         pwm.go_forward()
     elif decision == "TURN_LEFT":
-        pause_mission(SERIAL_PORT)
         pwm.steer_left()
-        resume_mission(SERIAL_PORT)
     elif decision == "TURN_RIGHT":
-        pause_mission(SERIAL_PORT)
         pwm.steer_right()
-        resume_mission(SERIAL_PORT)
     elif decision == "TURN_AROUND":
-        pause_mission(SERIAL_PORT)
         pwm.steer_left()
         time.sleep(1.5)
         pwm.steer_right()
         time.sleep(1.5)
-        resume_mission(SERIAL_PORT)
     else:
         pwm.stop_all()
 
 def main():
-    print("NJORD Autonomous Boat Control v1.0")
-
+    print("🚤 NJORD Autonomous Boat Control - Minimal Version")
     csv_path = ask_for_csv_path()
-    convert_csv_to_plan(csv_path, PLAN_OUTPUT)
-    logger.log(f"✅ CSV converted to {PLAN_OUTPUT}")
-
-    launch_qgc()
+    if csv_path:
+        convert_csv_to_plan(csv_path, PLAN_OUTPUT)
+        logger.log(f"✅ CSV converted to {PLAN_OUTPUT}")
+    else:
+        logger.log("⚠️ No CSV path provided. Continuing without mission plan.")
 
     cap = cv2.VideoCapture(CAMERA_INDEX)
     if not cap.isOpened():
-        print("❌ Failed to open webcam.")
+        print("❌ Failed to open camera.")
         exit(1)
 
     nav = visionNav(video=cap)
