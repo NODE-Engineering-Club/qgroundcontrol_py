@@ -14,14 +14,13 @@ CAMERA_INDEX = 0
 MAVLINK_UDP = "udp:127.0.0.1:14551"
 PLAN_OUTPUT = "mission.plan"
 LOG_FILE_PATH = "mission_log.txt"
-QGC_PATH = "/home/pi/QGroundControl.AppImage"  # Adjust if stored somewhere else
 
 logger = MissionLogger()
 
 def ask_for_csv_path():
     root = tk.Tk()
     root.withdraw()
-    print(" Select GPS CSV file or press Cancel to skip.")
+    print("Select GPS CSV file or press Cancel to skip.")
     file_path = filedialog.askopenfilename(
         title="Select GPS CSV File (Optional)",
         filetypes=[("CSV Files", "*.csv")]
@@ -32,15 +31,10 @@ def ask_for_csv_path():
     print(f"✅ Selected file: {file_path}")
     return file_path
 
-def launch_qgc():
-    if not os.path.exists(QGC_PATH):
-        print("❌ QGroundControl.AppImage not found at:", QGC_PATH)
-        return
-
+def launch_qgc_flatpak():
     try:
-        print(" Launching QGroundControl...")
-        subprocess.Popen([QGC_PATH])
-        logger.log("Launched QGroundControl")
+        subprocess.Popen(["flatpak", "run", "org.qgroundcontrol.QGroundControl"])
+        logger.log("QGroundControl launched via Flatpak")
     except Exception as e:
         print("❌ Failed to launch QGC:", e)
 
@@ -74,7 +68,7 @@ def handle_decision(decision, pwm: PWMController):
         pwm.stop_all()
 
 def main():
-    print("🚤 NJORD Autonomous Boat Control - QGC Launch Mode")
+    print("🚤 NJORD Autonomous Boat Control - Flatpak QGC Mode")
     csv_path = ask_for_csv_path()
     if csv_path:
         convert_csv_to_plan(csv_path, PLAN_OUTPUT)
@@ -82,7 +76,7 @@ def main():
     else:
         logger.log("⚠️ No CSV path provided. Continuing without mission plan.")
 
-    launch_qgc()  #  This is the part that launches QGC automatically
+    launch_qgc_flatpak()
 
     cap = cv2.VideoCapture(CAMERA_INDEX)
     if not cap.isOpened():
