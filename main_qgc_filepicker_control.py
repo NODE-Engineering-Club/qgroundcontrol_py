@@ -8,6 +8,7 @@ from pwm_controller import PWMController
 from qgc_plan_converter import convert_csv_to_plan
 from mission_logger import MissionLogger
 import subprocess
+from dronekit import VehicleMode
 
 # === CONFIG ===
 CAMERA_INDEX = 0
@@ -51,7 +52,7 @@ def interpret_decision(nav: visionNav):
         return "TURN_RIGHT"
 
 def handle_decision(decision, pwm: PWMController):
-    logger.log(f" Decision: {decision}")
+    logger.log(f"Decision: {decision}")
 
     if decision == "KEEP_ROUTE":
         pwm.go_forward()
@@ -68,7 +69,8 @@ def handle_decision(decision, pwm: PWMController):
         pwm.stop_all()
 
 def main():
-    print("🚤 NJORD Autonomous Boat Control - Flatpak QGC Mode")
+    print("🚤 NJORD Autonomous Boat Control - QGC Mode")
+
     csv_path = ask_for_csv_path()
     if csv_path:
         convert_csv_to_plan(csv_path, PLAN_OUTPUT)
@@ -85,6 +87,21 @@ def main():
 
     nav = visionNav(video=cap)
     pwm = PWMController(MAVLINK_UDP)
+
+    # ✅ Arm and set GUIDED mode
+    print("Setting mode to GUIDED...")
+    pwm.vehicle.mode = VehicleMode("GUIDED")
+    while pwm.vehicle.mode.name != "GUIDED":
+        print("Waiting for GUIDED mode...")
+        time.sleep(1)
+
+    print("Arming motors...")
+    pwm.vehicle.armed = True
+    while not pwm.vehicle.armed:
+        print("Waiting for arming...")
+        time.sleep(1)
+
+    print("✅ Vehicle ready. Starting mission.")
 
     try:
         while True:
@@ -110,7 +127,8 @@ def main():
         cap.release()
         cv2.destroyAllWindows()
         pwm.stop_all()
-        logger.log(" Mission ended")
+        pwm.vehicle.armed = False
+        logger.log("Mission ended")
         logger.save_to_file(LOG_FILE_PATH)
 
 if __name__ == "__main__":
